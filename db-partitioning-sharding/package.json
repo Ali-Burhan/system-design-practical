@@ -1,0 +1,15 @@
+{
+  "name": "db-partitioning-sharding-playground",
+  "version": "1.0.0",
+  "description": "A hands-on playground for learning database partitioning and sharding: naive mod-hash sharding vs. consistent hashing, and range partitioning with partition pruning.",
+  "main": "server/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DB Partitioning &amp; Sharding Playground</title>
+<link rel="stylesheet" href="styles.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">⛁</span>
+    <div>
+      <h1>DB Partitioning &amp; Sharding Playground</h1>
+      <p>A hands-on simulator for two of the most-asked system design concepts &mdash; watch data actually move.</p>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="sharding">Sharding</button>
+    <button class="tab-btn" data-tab="partitioning">Partitioning</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ================= SHARDING TAB ================= -->
+  <section id="tab-sharding" class="tab-panel active">
+    <div class="intro-card">
+      <h2>Horizontal Sharding: Naive Mod-Hash vs. Consistent Hashing</h2>
+      <p>Every <strong>user</strong> below is stored on one of several independent shards (physically separate JSON "databases" under <code>server/data/shards-*</code>). Two strategies place the same user on a shard, side by side: <strong>naive mod-hashing</strong> (<code>hash(id) % N</code>) and <strong>consistent hashing</strong> with virtual nodes. Add or remove a shard and watch how many keys have to move under each strategy &mdash; this is the single biggest reason consistent hashing exists.</p>
+    </div>
+
+    <div class="controls-row">
+      <form id="add-user-form" class="inline-form">
+        <input id="user-name" type="text" placeholder="New user name (optional)" maxlength="40" />
+        <button type="submit" class="btn primary">Add user</button>
+      </form>
+      <div class="btn-group">
+        <button id="add-shard-btn" class="btn accent">+ Add shard</button>
+        <button id="remove-shard-btn" class="btn danger-outline">&minus; Remove shard</button>
+        <button id="reset-sharding-btn" class="btn ghost">Reset demo</button>
+      </div>
+    </div>
+
+    <div id="rebalance-banner" class="rebalance-banner hidden"></div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Consistent hash ring <span class="hint">(virtual nodes, colored by shard)</span></h3>
+        <svg id="ring-svg" viewBox="0 0 360 360" class="ring-svg"></svg>
+        <div id="ring-legend" class="legend"></div>
+      </div>
+      <div class="card">
+        <h3>Users per shard</h3>
+        <canvas id="shard-distribution-chart" height="220"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Users <span class="hint" id="user-count-hint"></span></h3>
+      <div class="table-wrap">
+        <table id="users-table">
+          <thead>
+            <tr><th>ID</th><th>Name</th><th>Naive shard</th><th>Consistent shard</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PARTITIONING TAB ================= -->
+  <section id="tab-partitioning" class="tab-panel">
+    <div class="intro-card">
+      <h2>Range Partitioning: One Table, Many Physical Segments</h2>
+      <p><strong>Orders</strong> live in a single logical table that is physically split into monthly range partitions (<code>server/data/partitions/orders_YYYY_MM.json</code>) &mdash; all on the "same database", unlike sharding above. Query by date range and see <strong>partition pruning</strong> in action: only the partitions that can contain matching rows are scanned.</p>
+    </div>
+
+    <div class="controls-row">
+      <form id="add-order-form" class="inline-form">
+        <input id="order-customer" type="text" placeholder="Customer" maxlength="40" />
+        <input id="order-amount" type="number" placeholder="Amount" min="0" step="0.01" />
+        <input id="order-date" type="date" value="2025-06-15" />
+        <button type="submit" class="btn primary">Add order</button>
+      </form>
+      <div class="btn-group">
+        <button id="reset-partitioning-btn" class="btn ghost">Reset demo</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Partitions <span class="hint">(one physical segment per month)</span></h3>
+      <div id="partition-timeline" class="partition-timeline"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Run a range query</h3>
+        <form id="query-form" class="stacked-form">
+          <label>From <input id="query-start" type="date" value="2025-03-01" /></label>
+          <label>To <input id="query-end" type="date" value="2025-04-30" /></label>
+          <button type="submit" class="btn primary full">Run query</button>
+        </form>
+        <p class="fineprint">Timings are simulated (fixed per-partition overhead + per-row cost) to make the pruning effect legible &mdash; not a real disk benchmark.</p>
+      </div>
+      <div class="card">
+        <h3>Result</h3>
+        <div id="query-result" class="query-result">Run a query to see partition pruning stats.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Matched orders <span class="hint" id="matched-count-hint"></span></h3>
+      <div class="table-wrap">
+        <table id="orders-table">
+          <thead>
+            <tr><th>ID</th><th>Customer</th><th>Amount</th><th>Date</th><th>Partition</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Built to learn system design &mdash; <a href="https://github.com" target="_blank" rel="noopener">db-partitioning-sharding-playground</a>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
